@@ -161,6 +161,13 @@ efi_status_t __efiapi efi_pe_entry(efi_handle_t handle,
 		goto fail;
 	}
 
+	/* Patch kernel command line */
+	status = efi_read_cmdline_from_file(image);
+	if (status != EFI_SUCCESS) {
+		efi_err("Unable to read cmdline parameters from file\n");
+		goto fail;
+	}
+
 	/*
 	 * Get the command line from EFI, using the LOADED_IMAGE
 	 * protocol. We are going to copy the command line into the
@@ -212,12 +219,9 @@ efi_status_t __efiapi efi_pe_entry(efi_handle_t handle,
 	secure_boot = efi_get_secureboot();
 
 	/*
-	 * Unauthenticated device tree data is a security hazard, so ignore
-	 * 'dtb=' unless UEFI Secure Boot is disabled.  We assume that secure
-	 * boot is enabled if we can't determine its state.
+	 * Ignoring secure boot state. Loading a DTB either way.
 	 */
-	if (!IS_ENABLED(CONFIG_EFI_ARMSTUB_DTB_LOADER) ||
-	     secure_boot != efi_secureboot_mode_disabled) {
+	if (!IS_ENABLED(CONFIG_EFI_ARMSTUB_DTB_LOADER)) {
 		if (strstr(cmdline_ptr, "dtb="))
 			efi_err("Ignoring DTB from command line.\n");
 	} else {
