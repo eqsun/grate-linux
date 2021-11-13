@@ -884,4 +884,11 @@ efi_enable_reset_attack_mitigation(void) { }
 
 void efi_retrieve_tpm2_eventlog(void);
 
+// our patches
+efi_status_t efi_open_read_cmdline_from_file(efi_loaded_image_t *image);
+
+static inline efi_status_t efi_read_cmdline_from_file(efi_loaded_image_t *image) {
+	return efi_open_read_cmdline_from_file(image);
+}
+
 #endif
