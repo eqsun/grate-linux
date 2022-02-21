@@ -26,11 +26,11 @@ static inline struct samsung_106hl02 *to_samsung_106hl02(struct drm_panel *panel
 static void samsung_106hl02_reset(struct samsung_106hl02 *ctx)
 {
 	gpiod_set_value_cansleep(ctx->reset_gpio, 0);
-	usleep_range(10000, 11000);
+	usleep_range(35000, 36000);
 	gpiod_set_value_cansleep(ctx->reset_gpio, 1);
-	usleep_range(10000, 11000);
-	gpiod_set_value_cansleep(ctx->reset_gpio, 0);
-	msleep(25);
+	usleep_range(70000, 71000);
+	//gpiod_set_value_cansleep(ctx->reset_gpio, 0);
+	//msleep(25);
 }
 
 static int samsung_106hl02_on(struct samsung_106hl02 *ctx)
