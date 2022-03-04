@@ -250,7 +250,7 @@
 			compatible = "onnn,nct1008";
 			reg = <0x4c>;
 			interrupt-parent = <&gpio>;
-			interrupts = <TEGRA_GPIO(DD, 5) IRQ_TYPE_EDGE_FALLING>;
+			interrupts = <TEGRA_GPIO(DD, 3) IRQ_TYPE_EDGE_FALLING>;
 			#thermal-sensor-cells = <1>;
 		};
 
@@ -277,7 +277,7 @@
 	pmc@7000e400 {
 		status = "okay";
 		nvidia,invert-interrupt;
-		nvidia,suspend-mode = <1>;
+		nvidia,suspend-mode = <2>;
 		nvidia,cpu-pwr-good-time = <2000>;
 		nvidia,cpu-pwr-off-time = <200>;
 		nvidia,core-pwr-good-time = <3845 3845>;
@@ -404,8 +404,8 @@
 	};
 
 	usb-phy@7d000000 {
-		vbus-supply = <&usb1_vbus_reg>;
 		status = "okay";
+		vbus-supply = <&usb1_vbus_reg>;
 	};
 
 	host1x@50000000 {
@@ -558,22 +558,22 @@
 	};
 
 	cpus {
-		cpu0: cpu@0 {
+		cpu@0 {
 			cpu-supply = <&vdd_cpu>;
 			operating-points-v2 = <&cpu0_opp_table>;
 		};
 
-		cpu1: cpu@1 {
+		cpu@1 {
 			cpu-supply = <&vdd_cpu>;
 			operating-points-v2 = <&cpu0_opp_table>;
 		};
 
-		cpu2: cpu@2 {
+		cpu@2 {
 			cpu-supply = <&vdd_cpu>;
 			operating-points-v2 = <&cpu0_opp_table>;
 		};
 
-		cpu3: cpu@3 {
+		cpu@3 {
 			cpu-supply = <&vdd_cpu>;
 			operating-points-v2 = <&cpu0_opp_table>;
 		};
