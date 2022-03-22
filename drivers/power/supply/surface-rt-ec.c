@@ -51,6 +51,7 @@ static const enum power_supply_property srt_bat_power_supply_props[] = {
 	POWER_SUPPLY_PROP_MANUFACTURER,
 	POWER_SUPPLY_PROP_MODEL_NAME,
 	POWER_SUPPLY_PROP_ONLINE,
+	POWER_SUPPLY_PROP_PRESENT,
 	POWER_SUPPLY_PROP_SERIAL_NUMBER,
 	POWER_SUPPLY_PROP_STATUS,
 	POWER_SUPPLY_PROP_TECHNOLOGY,
@@ -60,6 +61,7 @@ static const enum power_supply_property srt_bat_power_supply_props[] = {
 
 static const enum power_supply_property srt_psy_power_supply_props[] = {
 	POWER_SUPPLY_PROP_ONLINE,
+	POWER_SUPPLY_PROP_PRESENT,
 };
 
 static int srt_bat_get_string(struct i2c_client *client, char *buf, u8 reg)
@@ -201,6 +203,7 @@ static int srt_bat_power_supply_get_property(struct power_supply *psy,
 		ret = srt_bat_get_value(client, REGW_CYCLE_COUNT, &val->intval);
 		break;
 	case POWER_SUPPLY_PROP_ONLINE:
+	case POWER_SUPPLY_PROP_PRESENT:
 		ret = srt_bat_get_value(client, REGB_ONLINE, &val->intval);
 		break;
 	case POWER_SUPPLY_PROP_STATUS:
@@ -235,6 +238,7 @@ static int srt_psy_power_supply_get_property(struct power_supply *psy,
 
 	switch (psp) {
 	case POWER_SUPPLY_PROP_ONLINE:
+	case POWER_SUPPLY_PROP_PRESENT:
 		ret = i2c_smbus_read_byte_data(srt->client, REGB_ONLINE);
 		if (ret < 0)
 			return ret;
