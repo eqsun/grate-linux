@@ -184,7 +184,7 @@
 			vcc7-supply = <&vdd_ac_bat_reg>;
 
 			vccio-supply = <&vdd_ac_bat_reg>;
-/* // for later
+
 			regulators {
 				// vdd1 - not connected
 
@@ -195,7 +195,7 @@
 					regulator-always-on;
 				};
 
-				vddctrl_reg: vddctrl {
+				vdd_cpu: vddctrl {
 					regulator-name = "vdd_cpu,vdd_sys";
 					regulator-min-microvolt = <800000>;
 					regulator-max-microvolt = <1250000>;
@@ -253,7 +253,25 @@
 					regulator-always-on;
 				};
 			};
-*/
+		};
+		
+		vdd_core: core-regulator@60 {
+			compatible = "ti,tps62361";
+			reg = <0x60>;
+
+			regulator-name = "tps62361-vout";
+			regulator-min-microvolt = <500000>;
+			regulator-max-microvolt = <1350000>;
+			regulator-coupled-with = <&vdd_cpu>;
+			regulator-coupled-max-spread = <300000>;
+			regulator-max-step-microvolt = <100000>;
+			regulator-boot-on;
+			regulator-always-on;
+			ti,enable-vout-discharge;
+			ti,vsel0-state-high;
+			ti,vsel1-state-high;
+
+			nvidia,tegra-core-regulator;
 		};
 	};
 
@@ -568,7 +586,7 @@
 	lvds-encoder {
 		compatible = "lvds-encoder";
 
-		powerdown-gpios = <&gpio TEGRA_GPIO(C, 1) GPIO_ACTIVE_LOW>;
+		//powerdown-gpios = <&gpio TEGRA_GPIO(C, 1) GPIO_ACTIVE_LOW>;
 
 		ports {
 			#address-cells = <1>;
