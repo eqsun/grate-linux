@@ -21,7 +21,7 @@
 		core-supply = <&vdd_pd_core_stub>;
 	};
 
-	ldo5_reg: tps65911-ldo5 {
+	ldo3: tps65911-ldo3 {
 		compatible = "regulator-fixed";
 		regulator-name = "vddio_sdmmc";
 		regulator-min-microvolt = <3300000>;
