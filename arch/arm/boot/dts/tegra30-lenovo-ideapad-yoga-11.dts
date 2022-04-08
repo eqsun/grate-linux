@@ -16,6 +16,17 @@
 
 		rtc0 = &pmic;
 		rtc1 = "/rtc@7000e000";
+
+		serial0 = &uarta; /* console */
+	};
+
+	chosen {
+		stdout-path = "serial0:115200n8";
+	};
+
+	/* 2GB DDR3 Memory */
+	memory@80000000 {
+		reg = <0x80000000 0x40000000>; // 1 GiB is wrong size but 2GB doesn't work atm
 	};
 
 	/* clock from PMIC */
@@ -71,6 +82,10 @@
 		};
 	};
 
+	serial@70006000 {
+		status = "okay";
+	};
+
 	pwm@7000a000 {
 		status = "okay";
 	};
@@ -78,6 +93,19 @@
 	i2c@7000c000 {
 		status = "okay";
 		clock-frequency = <100000>;
+
+		/*
+		battery@16 {
+			compatible = "battery";
+			reg = <0x16>;
+		};
+		*/
+
+		thermal@4c {
+			compatible = "emc1412";
+			reg = <0x4c>;
+			// Interrupt CC2
+		};
 	};
 
 	i2c@7000c400 {
@@ -91,6 +119,8 @@
 			hid-descr-addr = <0x0000>;
 			interrupt-parent = <&gpio>;
 			interrupts = <TEGRA_GPIO(H, 4) IRQ_TYPE_LEVEL_LOW>;
+
+			vddl-supply = <&vdd_ts>;
 			// reset H6
 		};
 
@@ -115,6 +145,14 @@
 			interrupts = <TEGRA_GPIO(W, 3) IRQ_TYPE_LEVEL_HIGH>;
 		};
 
+		light-sensor@44 {
+			compatible = "isil,isl29023";
+			reg = <0x44>;
+
+			interrupt-parent = <&gpio>;
+			interrupts = <TEGRA_GPIO(L, 0) IRQ_TYPE_LEVEL_HIGH>;
+		};
+
 		gyroscope@68 {
 			compatible = "invensense,mpu6050";
 			reg = <0x68>;
@@ -128,6 +166,16 @@
 			i2c-gate {
 				#address-cells = <1>;
 				#size-cells = <0>;
+
+				magnetometer@c {
+					compatible = "asahi-kasei,ak8975";
+					reg = <0x0c>;
+
+
+					mount-matrix =   "0",  "1",  "0",
+							 "1",  "0",  "0",
+							 "0",  "0", "-1";
+				};
 			};
 		};
 
@@ -164,7 +212,6 @@
 		status = "okay";
 		clock-frequency = <400000>;
 
-		// Right now only for RealTimeClock
 		pmic: tps65911@2d {
 			compatible = "ti,tps65911";
 			reg = <0x2d>;
@@ -203,6 +250,7 @@
 					regulator-coupled-max-spread = <300000>;
 					regulator-max-step-microvolt = <100000>;
 					regulator-always-on;
+					ti,regulator-ext-sleep-control = <1>;
 
 					nvidia,tegra-cpu-regulator;
 				};
@@ -217,7 +265,7 @@
 				// LDO1 - not conencted
 				// LDO2 - not conencted
 
-				vdd_3v3_sdmmc1_reg: ldo3 {
+				ldo3: ldo3 {
 					regulator-name = "vdd_3v3_sdmmc1";
 					regulator-min-microvolt = <1800000>;
 					regulator-max-microvolt = <3300000>;
@@ -272,6 +320,27 @@
 			ti,vsel1-state-high;
 
 			nvidia,tegra-core-regulator;
+		};
+	};
+
+	pmc@7000e400 {
+		status = "okay";
+		nvidia,invert-interrupt;
+		nvidia,suspend-mode = <1>;
+		nvidia,cpu-pwr-good-time = <2000>;
+		nvidia,cpu-pwr-off-time = <200>;
+		nvidia,core-pwr-good-time = <3845 3845>;
+		nvidia,core-pwr-off-time = <0>;
+		nvidia,core-power-req-active-high;
+		nvidia,sys-clock-req-active-high;
+
+		core-supply = <&vdd_core>;
+
+		i2c-thermtrip {
+			nvidia,i2c-controller-id = <4>;
+			nvidia,bus-addr = <0x2d>;
+			nvidia,reg-addr = <0x3f>;
+			nvidia,reg-data = <0x80>;
 		};
 	};
 
@@ -408,6 +477,10 @@
 		>;
 	};
 
+	hda@70030000 {
+		status = "okay";
+	};
+
 	ahub@70080000 {
 		i2s@70080400 {
 			status = "okay";
@@ -417,11 +490,11 @@
 	/* SD Card - SDMMC-1 */
 	mmc@78000000 {
 		status = "okay";
-		vqmmc-supply = <&ldo3_reg>;
+		vqmmc-supply = <&ldo3>;
 		bus-width = <4>;
 		power-gpios = <&gpio TEGRA_GPIO(D, 7) GPIO_ACTIVE_HIGH>;
 		cd-gpios = <&gpio TEGRA_GPIO(I, 5) GPIO_ACTIVE_LOW>;
-		//wp-gpios = <&gpio TEGRA_GPIO(T, 3) GPIO_ACTIVE_HIGH>;
+		wp-gpios = <&gpio TEGRA_GPIO(T, 3) GPIO_ACTIVE_LOW>;
 	};
 
 	/* WiFi - SDMMC-3 */
@@ -443,7 +516,7 @@
 		mmc-pwrseq = <&brcm_wifi_pwrseq>;
 		vmmc-supply = <&vdd_3v3_com>;
 
-		/* Azurewave AW-NH615 BCM4329 or AW-NH665 BCM4330 */
+		/* Azurewave AW-NB108 BCM4330 */
 		wifi@1 {
 			compatible = "brcm,bcm4329-fmac";
 			reg = <1>;
@@ -459,6 +532,7 @@
 		status = "okay";
 		bus-width = <8>;
 		non-removable;
+		power-gpios = <&gpio TEGRA_GPIO(D, 1) GPIO_ACTIVE_HIGH>;
 	};
 
 	/* USB Left */
@@ -553,7 +627,7 @@
 			wakeup-source;
 		};
 
-		magic-button {
+		rotation-lock {
 			label = "Rotation Lock";
 			gpios = <&gpio TEGRA_GPIO(K, 4) GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_ROTATE_LOCK_TOGGLE>;
@@ -773,11 +847,44 @@
 		enable-active-high;
 	};
 
-	ldo3_reg: tps65911-ldo3 {
+	// from schematic
+	vdd_edp: regulator {
 		compatible = "regulator-fixed";
-		regulator-name = "vddio_sdmmc";
+		regulator-name = "vdd_edp";
 		regulator-min-microvolt = <3300000>;
 		regulator-max-microvolt = <3300000>;
 		regulator-always-on;
+		gpio = <&gpio TEGRA_GPIO(P, 0) GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	vdd_tp: regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_tp";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+		gpio = <&gpio TEGRA_GPIO(U, 4) GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	vdd_ts: regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "vdd_ts";
+		regulator-min-microvolt = <3300000>;
+		regulator-max-microvolt = <3300000>;
+		regulator-always-on;
+		gpio = <&gpio TEGRA_GPIO(U, 3) GPIO_ACTIVE_HIGH>;
+		enable-active-high;
+	};
+
+	EN_VDD_eDP: regulator {
+		compatible = "regulator-fixed";
+		regulator-name = "EN_VDD_eDP";
+		regulator-min-microvolt = <1200000>;
+		regulator-max-microvolt = <1200000>;
+		regulator-always-on;
+		gpio = <&gpio TEGRA_GPIO(P, 0) GPIO_ACTIVE_HIGH>;
+		enable-active-high;
 	};
 };
